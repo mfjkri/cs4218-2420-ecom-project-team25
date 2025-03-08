@@ -55,7 +55,7 @@ const Users = () => {
           </div>
           <div className="col-md-9">
             <h1>All Users</h1>
-            <table className="table table-bordered" data-testid="users-table">
+            <table className="table table-bordered">
               <thead>
                 <tr>
                   <th scope="col">Name</th>
