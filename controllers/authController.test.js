@@ -189,6 +189,31 @@ describe("Auth Controller Tests", () => {
 				message: "Email is already registered, please log in",
 			});
 		});
+
+    it("should handle errors gracefully", async () => {
+      const errorMessage = "Some unexpected error";
+      const error = new Error(errorMessage);
+
+      req.body = {
+        name: "John Doe",
+        email: "john@example.com",
+        password: "password123",
+        phone: "1234567890",
+        address: "123 Street",
+        answer: "Blue",
+      };
+
+      userModel.findOne = jest.fn().mockRejectedValue(error); // Simulate an error
+
+      await registerController(req, res);
+
+      expect(res.status).toHaveBeenCalledWith(500);
+      expect(res.send).toHaveBeenCalledWith({
+        success: false,
+        message: "Error in Registration",
+        error: error,
+      });
+    });
 	});
 
      // Test for loginController

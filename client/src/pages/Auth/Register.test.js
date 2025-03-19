@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 import axios from "axios";
 import { useNavigate, MemoryRouter, Routes, Route } from "react-router-dom";
 import "@testing-library/jest-dom/extend-expect";
@@ -372,8 +372,6 @@ describe("Register Component", () => {
 	});
 
 	it("should show error on invalid email format", async () => {
-		axios.post.mockRejectedValueOnce({ message: "Invalid email format" });
-
 		const { getByText, getByPlaceholderText } = render(
 			<MemoryRouter initialEntries={["/register"]}>
 				<Routes>
@@ -449,5 +447,47 @@ describe("Register Component", () => {
 
 		await waitFor(() => expect(axios.post).toHaveBeenCalled());
 		expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+	});
+
+	it("should display error message on unsuccessful response", async () => {
+		const errorMessage = "Error when registering";
+		axios.post.mockResolvedValueOnce({
+			data: { success: false, message: errorMessage },
+		});
+
+		render(
+			<MemoryRouter initialEntries={["/register"]}>
+				<Routes>
+					<Route path="/register" element={<Register />} />
+				</Routes>
+			</MemoryRouter>
+		);
+
+		fireEvent.change(screen.getByPlaceholderText("Enter Your Name"), {
+			target: { value: "John Doe" },
+		});
+		fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
+			target: { value: "test@example.com" },
+		});
+		fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+			target: { value: "password123" },
+		});
+		fireEvent.change(screen.getByPlaceholderText("Enter Your Phone"), {
+			target: { value: "1234567890" },
+		});
+		fireEvent.change(screen.getByPlaceholderText("Enter Your Address"), {
+			target: { value: "123 Street" },
+		});
+		fireEvent.change(screen.getByPlaceholderText("Enter Your DOB"), {
+			target: { value: "2000-01-01" },
+		});
+		fireEvent.change(screen.getByPlaceholderText("What is Your Favorite Sport"), {
+			target: { value: "Football" },
+		});
+
+		fireEvent.click(screen.getByText("REGISTER"));
+		
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith(errorMessage));
+		expect(axios.post).toHaveBeenCalled()
 	});
 });

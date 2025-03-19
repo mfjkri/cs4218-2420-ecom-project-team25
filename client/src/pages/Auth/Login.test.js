@@ -1,5 +1,5 @@
 import React from "react";
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { render, fireEvent, waitFor, screen } from "@testing-library/react";
 import axios from "axios";
 import { useNavigate, MemoryRouter, Routes, Route } from "react-router-dom";
 import "@testing-library/jest-dom/extend-expect";
@@ -301,5 +301,31 @@ describe("Login Component", () => {
 
 		await waitFor(() => expect(axios.post).toHaveBeenCalled());
 		expect(toast.error).toHaveBeenCalledWith("Something went wrong");
+	});
+
+	it("should display error message on unsuccessful response", async () => {
+		const errorMessage = "Error when logging in";
+		axios.post.mockResolvedValueOnce({
+			data: { success: false, message: errorMessage },
+		});
+
+		render(
+			<MemoryRouter initialEntries={["/login"]}>
+				<Routes>
+					<Route path="/login" element={<Login />} />
+				</Routes>
+			</MemoryRouter>
+		);
+
+		fireEvent.change(screen.getByPlaceholderText("Enter Your Email"), {
+			target: { value: "test@example.com" },
+		});
+		fireEvent.change(screen.getByPlaceholderText("Enter Your Password"), {
+			target: { value: "password123" },
+		});
+		fireEvent.click(screen.getByText("LOGIN"));
+		
+		await waitFor(() => expect(toast.error).toHaveBeenCalledWith(errorMessage));
+		expect(axios.post).toHaveBeenCalled()
 	});
 });
